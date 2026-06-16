@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏃 True or False Runner</title>
+
+<style>
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    font-family:"Trebuchet MS",sans-serif;
+    background:linear-gradient(#87ceeb,#dff5ff);
+    text-align:center;
+    overflow:hidden;
+}
+
+h1{
+    margin:10px 0;
+    color:#222;
+}
+
+#question{
+    font-size:30px;
+    font-weight:bold;
+    margin:10px;
+    color:#111;
+}
+
+#score{
+    font-size:24px;
+    margin-bottom:10px;
+}
+
+#message{
+    height:40px;
+    font-size:30px;
+    font-weight:bold;
+}
+
+#game{
+    position:relative;
+    width:900px;
+    height:450px;
+    margin:auto;
+    border:5px solid #333;
+    background:linear-gradient(#9fe6ff,#dff8ff);
+    overflow:hidden;
+    border-radius:12px;
+}
+
+/* FALSE SIDE */
+#falseSide{
+    position:absolute;
+    left:0;
+    top:0;
+    width:50%;
+    height:100%;
+    background:rgba(255,0,0,0.15);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:50px;
+    font-weight:bold;
+    color:#cc0000;
+}
+
+/* TRUE SIDE */
+#trueSide{
+    position:absolute;
+    right:0;
+    top:0;
+    width:50%;
+    height:100%;
+    background:rgba(0,255,0,0.15);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:50px;
+    font-weight:bold;
+    color:#008000;
+}
+
+/* SCROLLING GROUND */
+#ground{
+    position:absolute;
+    bottom:0;
+    left:0;
+    width:200%;
+    height:60px;
+
+    background:
+        repeating-linear-gradient(
+            90deg,
+            #4CAF50 0px,
+            #4CAF50 50px,
+            #3d8f40 50px,
+            #3d8f40 100px
+        );
+
+    animation:scrollGround 2s linear infinite;
+}
+
+@keyframes scrollGround{
+    from{
+        transform:translateX(0);
+    }
+    to{
+        transform:translateX(-100px);
+    }
+}
+
+/* PLAYER */
+#player{
+    position:absolute;
+    width:50px;
+    height:90px;
+    bottom:55px;
+    left:425px;
+    transition:left 0.6s ease;
+    z-index:5;
+}
+
+.head{
+    width:22px;
+    height:22px;
+    background:#ffd166;
+    border-radius:50%;
+    margin:auto;
+}
+
+.body{
+    width:6px;
+    height:30px;
+    background:#111;
+    margin:auto;
+}
+
+.arms{
+    position:relative;
+    width:40px;
+    height:10px;
+    margin:auto;
+}
+
+.arm{
+    position:absolute;
+    width:20px;
+    height:4px;
+    background:#111;
+    top:0;
+    left:10px;
+    transform-origin:center;
+}
+
+.left-arm{
+    animation:armLeft .25s infinite alternate;
+}
+
+.right-arm{
+    animation:armRight .25s infinite alternate;
+}
+
+.legs{
+    position:relative;
+    width:40px;
+    height:30px;
+    margin:auto;
+}
+
+.leg{
+    position:absolute;
+    width:4px;
+    height:30px;
+    background:#111;
+    left:18px;
+    transform-origin:top center;
+}
+
+.left-leg{
+    animation:runLeft .25s infinite alternate;
+}
+
+.right-leg{
+    animation:runRight .25s infinite alternate;
+}
+
+@keyframes runLeft{
+    from{transform:rotate(-35deg);}
+    to{transform:rotate(35deg);}
+}
+
+@keyframes runRight{
+    from{transform:rotate(35deg);}
+    to{transform:rotate(-35deg);}
+}
+
+@keyframes armLeft{
+    from{transform:rotate(30deg);}
+    to{transform:rotate(-30deg);}
+}
+
+@keyframes armRight{
+    from{transform:rotate(-30deg);}
+    to{transform:rotate(30deg);}
+}
+
+.instructions{
+    margin-top:10px;
+    font-size:20px;
+}
+
+/* SCORE POP */
+.pop{
+    animation:pop .4s;
+}
+
+@keyframes pop{
+    0%{transform:scale(1);}
+    50%{transform:scale(1.3);}
+    100%{transform:scale(1);}
+}
+</style>
+</head>
+<body>
+
+<h1>🏃 True or False Runner</h1>
+
+<div id="question">Loading...</div>
+
+<div id="score">Score: 0</div>
+
+<div id="message"></div>
+
+<div id="game">
+
+    <div id="falseSide">FALSE</div>
+    <div id="trueSide">TRUE</div>
+
+    <div id="player">
+        <div class="head"></div>
+        <div class="body"></div>
+
+        <div class="arms">
+            <div class="arm left-arm"></div>
+            <div class="arm right-arm"></div>
+        </div>
+
+        <div class="legs">
+            <div class="leg left-leg"></div>
+            <div class="leg right-leg"></div>
+        </div>
+    </div>
+
+    <div id="ground"></div>
+
+</div>
+
+<div class="instructions">
+    ⬅️ LEFT = FALSE &nbsp;&nbsp;&nbsp; ➡️ RIGHT = TRUE
+</div>
+
+<script>
+const questions = [
+    // Internal Computer Hardware (25)
+
+    { text: "The CPU is often called the brain of the computer.", answer: true },
+    { text: "RAM stores files permanently even when the computer is turned off.", answer: false },
+    { text: "An SSD is usually faster than an HDD.", answer: true },
+    { text: "A GPU is mainly used for processing graphics and images.", answer: true },
+    { text: "The PSU supplies power to the computer components.", answer: true },
+    { text: "The motherboard connects all the main components together.", answer: true },
+    { text: "A Wi-Fi card allows a computer to connect to wireless networks.", answer: true },
+    { text: "A cooling fan helps prevent computer components from overheating.", answer: true },
+    { text: "A CD/DVD drive is required for every modern computer.", answer: false },
+    { text: "The CPU stores all of a computer's files.", answer: false },
+    { text: "RAM is used to store data currently being used by programs.", answer: true },
+    { text: "An HDD has no moving parts.", answer: false },
+    { text: "An SSD uses flash memory to store data.", answer: true },
+    { text: "The motherboard is located outside the computer case.", answer: false },
+    { text: "A PSU converts electricity from the wall into power the computer can use.", answer: true },
+    { text: "The GPU can improve gaming performance.", answer: true },
+    { text: "More RAM can help when running multiple programs at once.", answer: true },
+    { text: "A Wi-Fi card is used to cool the computer.", answer: false },
+    { text: "The computer case protects and holds the internal components.", answer: true },
+    { text: "Cooling fans can help extend the life of computer components.", answer: true },
+    { text: "The CPU performs calculations and processes instructions.", answer: true },
+    { text: "An HDD is usually more expensive per gigabyte than an SSD.", answer: false },
+    { text: "A graphics card is another name for a GPU.", answer: true },
+    { text: "Without a motherboard, the components cannot communicate properly.", answer: true },
+    { text: "RAM is a type of permanent storage.", answer: false },
+
+    // Building a Computer (10)
+
+    { text: "A computer can work without a PSU.", answer: false },
+    { text: "The CPU must be compatible with the motherboard.", answer: true },
+    { text: "A gaming computer may benefit from a dedicated GPU.", answer: true },
+    { text: "A larger SSD can store more files than a smaller SSD.", answer: true },
+    { text: "Every computer build needs a motherboard.", answer: true },
+    { text: "A computer case is purely decorative and serves no purpose.", answer: false },
+    { text: "Too little RAM can make a computer feel slow.", answer: true },
+    { text: "Cooling is important because components generate heat.", answer: true },
+    { text: "A Wi-Fi card is needed if you want wireless internet access.", answer: true },
+    { text: "You can install an operating system onto an SSD.", answer: true },
+
+    // Input and Output Devices (10)
+
+    { text: "A keyboard is an input device.", answer: true },
+    { text: "A monitor is an output device.", answer: true },
+    { text: "A printer is an input device.", answer: false },
+    { text: "A microphone is used to input sound into a computer.", answer: true },
+    { text: "Speakers are output devices.", answer: true },
+    { text: "A scanner is an input device.", answer: true },
+    { text: "A touchscreen can act as both an input and output device.", answer: true },
+    { text: "A webcam is an output device.", answer: false },
+    { text: "Headphones are output devices.", answer: true },
+    { text: "A mouse is used to output information to the user.", answer: false },
+
+    // Hardware and Software (10)
+
+    { text: "Hardware refers to the physical parts of a computer.", answer: true },
+    { text: "Software refers to programs and applications.", answer: true },
+    { text: "Microsoft Word is hardware.", answer: false },
+    { text: "A CPU is hardware.", answer: true },
+    { text: "An operating system is software.", answer: true },
+    { text: "You can physically touch software.", answer: false },
+    { text: "Games installed on a computer are software.", answer: true },
+    { text: "A monitor is software.", answer: false },
+    { text: "Without software, hardware cannot perform useful tasks.", answer: true },
+    { text: "Hardware and software work together to make a computer function.", answer: true },
+
+    // General Computing Knowledge (10)
+
+    { text: "A file can be stored on an SSD or HDD.", answer: true },
+    { text: "Computers use binary to process data.", answer: true },
+    { text: "A laptop is a type of computer.", answer: true },
+    { text: "The internet and the World Wide Web are exactly the same thing.", answer: false },
+    { text: "Saving a file stores it on a storage device.", answer: true },
+    { text: "Deleting a file removes it from storage.", answer: true },
+    { text: "Computers can operate without electricity.", answer: false },
+    { text: "Applications are a type of software.", answer: true },
+    { text: "A browser is used to access websites.", answer: true },
+    { text: "Every computer must have a graphics card to display images.", answer: false }
+];
+let score = 0;
+let currentQuestion;
+let canAnswer = true;
+
+const questionEl = document.getElementById("question");
+const scoreEl = document.getElementById("score");
+const messageEl = document.getElementById("message");
+const player = document.getElementById("player");
+
+function randomQuestion(){
+    currentQuestion =
+        questions[Math.floor(Math.random()*questions.length)];
+
+    questionEl.textContent = currentQuestion.text;
+    player.style.left = "425px";
+}
+
+function updateScore(){
+    scoreEl.textContent = "Score: " + score;
+
+    scoreEl.classList.remove("pop");
+    void scoreEl.offsetWidth;
+    scoreEl.classList.add("pop");
+}
+
+function answer(choice){
+
+    if(!canAnswer) return;
+
+    canAnswer = false;
+
+    if(choice === currentQuestion.answer){
+
+        score++;
+        updateScore();
+
+        messageEl.textContent = "✅ Correct!";
+        messageEl.style.color = "green";
+
+        player.style.left = choice ? "760px" : "80px";
+
+        setTimeout(()=>{
+            messageEl.textContent = "";
+            randomQuestion();
+            canAnswer = true;
+        },800);
+
+    }else{
+
+        messageEl.textContent = "❌ Wrong!";
+        messageEl.style.color = "red";
+
+        player.style.left = choice ? "760px" : "80px";
+
+        setTimeout(()=>{
+
+            alert("Game Over!\nYour score: " + score);
+
+            score = 0;
+            updateScore();
+
+            messageEl.textContent = "";
+
+            randomQuestion();
+            canAnswer = true;
+
+        },900);
+    }
+}
+
+document.addEventListener("keydown",(e)=>{
+
+    if(e.key === "ArrowLeft"){
+        answer(false);
+    }
+
+    if(e.key === "ArrowRight"){
+        answer(true);
+    }
+
+});
+
+randomQuestion();
+</script>
+
+</body>
+</html>
